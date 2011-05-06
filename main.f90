@@ -1,24 +1,21 @@
-include 'xyz_coordinate_file.f90'
+include 'xyz_parsing.f90'
 
 program readtext
 
-use xyz_coordinate_file
-
-character(100) :: filename
-type(atom), dimension(:),pointer :: atoms
-integer :: i, j, stat, numAtoms, stepnum
-
-filename = "malonic-cluster-md-1-pos-1.xyz"
-! open the file
-open(1,file=filename,status='old',iostat=stat)
-
-call ReadXYZFrame (1, numAtoms, atoms, stepnum)
-call ReadXYZFrame (1, numAtoms, atoms, stepnum)
-
-write (*,*) "found ", numAtoms, " atoms"
-
-do i=1,numAtoms
-  write (*,*) atoms(i)%name, char(9), atoms(i)%x, atoms(i)%y, atoms(i)%z
-end do
-
+use xyz_parsing_module, only : xyz_OpenFile,      &
+                               xyz_LoadNextFrame, &
+                               xyz_atoms, xyz_num_atoms
+  
+  character(100) :: filename
+  integer :: i, j
+  
+  filename = "temp.xyz"
+  
+  call xyz_OpenFile(1, filename)
+  call xyz_LoadNextFrame
+  
+  !do i=1,xyz_num_atoms
+    !write (*,*) xyz_atoms(i)%name, xyz_atoms(i)%x, xyz_atoms(i)%y, xyz_atoms(i)%z
+  !end do
+  
 end program readtext
