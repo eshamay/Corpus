@@ -2,7 +2,7 @@ module linear_algebra_ops
 
   type matrix
     real :: elem
-end type matrix
+  end type matrix
 
   interface assignment ( = )
     module procedure vector_from_real, vector_from_vector
@@ -47,7 +47,7 @@ function vector_inner_product (Y, Z) result (X)
   type(matrix), intent(in), dimension(:) :: Y
   type(matrix), intent(in), dimension(size(Y,1)) :: Z
   real :: X
-  X = ddot(size(Y,1), Y, 1, Z, 1)
+  X = sdot(size(Y,1), Y, 1, Z, 1)
 end function vector_inner_product
 
   !
