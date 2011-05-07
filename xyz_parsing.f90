@@ -1,3 +1,8 @@
+
+!use xyz_parsing_module, only : xyz_OpenFile,      &
+                               !xyz_LoadNextFrame, &
+                               !xyz_atoms, xyz_num_atoms
+
 module xyz_parsing_module
 
   implicit none
@@ -26,8 +31,6 @@ contains
     xyz_file_name = fileName
     open(xyz_file_unit,file=xyz_file_name,status='old',iostat=stat)
 
-    !call xyz_ReadHeader()
-    !call xyz_ReadFrame ()
   end subroutine xyz_OpenFile
 
 
