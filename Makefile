@@ -3,9 +3,10 @@ MKLLIBS		= -lmkl_intel_lp64 -lmkl_sequential -lmkl_core
 BLAS = $(MKLLIBS)
 
 LINALG = /home/eric/md/Corpus/linear_algebra_ops.o
+MAIN = main.o
 
-main : $(LINALG)
-	$(FC) -o main $(LINALG) $(BLAS) main.f90
+main : $(MAIN)
+	$(FC) -o main $(MAIN) $(BLAS)
 
 clean :
 	rm *.o *.mod main a.out test
