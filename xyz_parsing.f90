@@ -11,7 +11,7 @@ module xyz_parsing_module
   ! the x,y,z coordinates in 4 rows
   type xyz_atom_type
     character(len=5) :: name
-    real*8 :: x, y, z
+    real*8,dimension(3) :: position
   end type xyz_atom_type
 
   !! This holds all the information of an xyz file
@@ -38,9 +38,17 @@ contains
     xyz_file%file_unit = fileUnit
     xyz_file%file_name = fileName
     open(xyz_file%file_unit,file=xyz_file%file_name,status='old',iostat=xyz_file%file_stat)
+
     xyz_file%atoms_set = .false.
 
+    if (xyz_file%file_stat < 0) then
+      xyz_file%file_eof = .true.
+    else 
+      xyz_file%file_eof = .false.
+    end if
+
   end subroutine xyz_OpenFile
+
 
   subroutine xyz_CloseFile (xyz_file)
     type(xyz_file_type),intent(inout) :: xyz_file
@@ -77,7 +85,7 @@ contains
     if (.not. xyz_file%file_eof) then
       ! parse each atom (one per row) from the xyz file
       do i=1,xyz_file%num_atoms
-        read(xyz_file%file_unit,*) xyz_file%atoms(i)%name, xyz_file%atoms(i)%x, xyz_file%atoms(i)%y, xyz_file%atoms(i)%z
+        read(xyz_file%file_unit,*) xyz_file%atoms(i)%name, xyz_file%atoms(i)%position
       end do
     end if
   end subroutine xyz_ReadFrame
@@ -87,5 +95,17 @@ contains
     call xyz_ReadHeader(xyz_file)
     call xyz_ReadFrame(xyz_file)
   end subroutine xyz_LoadNextFrame
+
+  ! Returns a flat array of atomic positions parsed from the xyz file
+  function xyz_positions (xyz_file)
+    type(xyz_file_type),intent(inout) :: xyz_file
+    real, dimension(xyz_file%num_atoms*3) :: xyz_positions
+    integer :: i
+
+    do i=0,xyz_file%num_atoms-1
+      xyz_positions(3*i+1:3*i+3) = xyz_file%atoms(i+1)%position
+    end do
+  end function xyz_positions
+
 
 end module xyz_parsing_module
