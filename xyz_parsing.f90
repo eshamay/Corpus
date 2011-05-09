@@ -7,18 +7,22 @@ module xyz_parsing_module
 
   implicit none
 
+  !! An atom (i.e. a row of an xyz file) is represented by the atomic name, and
+  ! the x,y,z coordinates in 4 rows
   type xyz_atom_type
     character(len=5) :: name
     real*8 :: x, y, z
   end type xyz_atom_type
 
+  !! This holds all the information of an xyz file
   type xyz_file_type
     character(1000) :: file_name
     integer :: file_stat, file_unit 
     integer :: num_atoms
     type(xyz_atom_type),allocatable :: atoms(:)
-    logical :: atoms_set  !! whether or not the container for the atoms has
-                          ! already been set or not - do we need to allocate it?
+    logical :: atoms_set    ! whether or not the container for the atoms has
+                             ! already been set or not - do we need to allocate it?
+    logical :: file_eof
   end type xyz_file_type
 
 
@@ -38,17 +42,25 @@ contains
 
   end subroutine xyz_OpenFile
 
+  subroutine xyz_CloseFile (xyz_file)
+    type(xyz_file_type),intent(inout) :: xyz_file
+    close(xyz_file%file_unit)
+  end subroutine xyz_CloseFile
 
   subroutine xyz_ReadHeader (xyz_file)
     type(xyz_file_type),intent(inout) :: xyz_file
 
     !! parses the number of atoms in the upcoming frame
-    read(xyz_file%file_unit,*) xyz_file%num_atoms
-    !! skip a line, although there is often some good information in this line
-    !that may be useful later... (i.e. timestep, step number, energy values...)
-    read(xyz_file%file_unit,*)  
+    read(xyz_file%file_unit,*,iostat=xyz_file%file_stat) xyz_file%num_atoms
+    if (xyz_file%file_stat < 0) then
+      xyz_file%file_eof = .true.
+    else 
+      xyz_file%file_eof = .false.
+      !! skip a line, although there is often some good information in this line
+      !that may be useful later... (i.e. timestep, step number, energy values...)
+      read(xyz_file%file_unit,*)  
+    end if
   end subroutine xyz_ReadHeader
-
 
   ! parses all the atoms (name, x,y,z) into the xyz_atoms container for a single
   ! frame.
@@ -62,13 +74,13 @@ contains
       xyz_file%atoms_set = .true.
     end if
 
-    ! parse each atom (one per row) from the xyz file
-    do i=1,xyz_file%num_atoms
-      read(xyz_file%file_unit,*) xyz_file%atoms(i)%name, xyz_file%atoms(i)%x, xyz_file%atoms(i)%y, xyz_file%atoms(i)%z
-    end do
+    if (.not. xyz_file%file_eof) then
+      ! parse each atom (one per row) from the xyz file
+      do i=1,xyz_file%num_atoms
+        read(xyz_file%file_unit,*) xyz_file%atoms(i)%name, xyz_file%atoms(i)%x, xyz_file%atoms(i)%y, xyz_file%atoms(i)%z
+      end do
+    end if
   end subroutine xyz_ReadFrame
-
-
 
   subroutine xyz_LoadNextFrame (xyz_file)
     type(xyz_file_type),intent(inout) :: xyz_file
@@ -76,6 +88,4 @@ contains
     call xyz_ReadFrame(xyz_file)
   end subroutine xyz_LoadNextFrame
 
-
 end module xyz_parsing_module
-
