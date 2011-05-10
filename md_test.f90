@@ -3,6 +3,7 @@ program md_tester
 use xyz_parsing_module
 use md_system_module
 use bond_graph_module
+use md_math_module
 
 implicit none
 
@@ -11,6 +12,7 @@ real*8, dimension(:), allocatable :: positions
 type(md_pbc_type) :: pbc
 type(bg_graph_type) :: graph
 integer :: j
+real*8, dimension(4) :: norm = (/ 1., 4., 3., 5. /)
 
 ! open an xyz file
 call xyz_OpenFile(1, "temp.xyz", xyz_file)
@@ -23,7 +25,7 @@ pbc%system_size = (/ 10.0, 10.0, 15.0 /)
 
 ! create the graph
 graph = bg_InitializeGraph (positions, xyz_file%num_atoms, pbc)
-call bg_UpdateGraphDistances (positions, graph, pbc)
+call bg_UpdateGraph (positions, graph, pbc)
 
 do j=2,5
   write (*,*) graph%graph(1,j)%bond(:)

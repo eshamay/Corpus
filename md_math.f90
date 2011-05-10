@@ -14,4 +14,13 @@ contains
     minvec(:) = minvec(:) - nint(minvec(:)/pbc(:)) * pbc(:)
   end function md_MinimumVector
 
+  function md_VectorNorm (vec) result (norm)
+    real*8, dimension(:) :: vec
+    real*8 :: norm
+
+    vec = vec * vec
+    norm = sum(vec)
+    norm = sqrt(norm)
+  end function md_VectorNorm
+
 end module md_math_module

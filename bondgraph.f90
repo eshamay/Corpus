@@ -1,9 +1,10 @@
 ! a simple connectivity matrix to keep track of the interconnections
 ! between atoms of an MD system
 module bond_graph_module
+implicit none
 
   use md_system_module, only : md_pbc_type
-  use md_math_module, only : md_minimumvector
+  use md_math_module, only : md_MinimumVector, md_VectorNorm
 
   !! All bondlengths are given in angstroms
   real*8, parameter ::  bg_oh_bond_length = 1.1,               &
@@ -43,20 +44,21 @@ contains
 
     graph%graph_size = num_atoms
     allocate (graph%graph (num_atoms,num_atoms))
-    call bg_ClearGraph(graph)
-    call bg_UpdateGraphDistances(positions, graph, pbc)
+    call bg_ClearGraph (graph)
+    call bg_UpdateGraph (positions, graph, pbc)
   end function bg_InitializeGraph
+
 
 
   ! goes through each pair of position vectors and calculates the distance
   ! between them
-  subroutine bg_UpdateGraphDistances (positions, graph, pbc)
+  subroutine bg_UpdateGraph (positions, graph, pbc)
     type(bg_graph_type) :: graph
     real*8, dimension(graph%graph_size * 3) :: positions
     type(md_pbc_type) :: pbc
 
     ! this populates the upper triangle of the matrix with the distances between
-    ! the element pairs
+    ! the atom pairs
     do i=1,graph%graph_size-1
       do j=i+1,graph%graph_size
 
@@ -64,11 +66,29 @@ contains
           md_MinimumVector (positions(3*i-2:3*i),   &
                             positions(3*j-2:3*j),   &
                             pbc%system_size)
+          graph%graph(i,j)%bondlength =     &
+            md_VectorNorm (graph%graph(i,j)%bond)
       end do
     end do
 
-  end subroutine bg_UpdateGraphDistances
+    call bg_ParseBondTypes (graph)
+  end subroutine bg_UpdateGraph
 
+
+
+  ! A method to assign bond types to each bond in a graph 
+  ! once the distances have been calculated
+  subroutine bg_ParseBondTypes (graph)
+    type(bg_graph_type) :: graph
+    integer :: i,j
+
+    do i=1,graph%graph_size-1
+      do j=i+1,graph%graph_size
+        
+      end do
+    end do
+
+  end subroutine bg_ParseBondTypes
 
 
 
