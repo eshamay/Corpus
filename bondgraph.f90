@@ -33,7 +33,6 @@ implicit none
 
 contains
 
-
   function bg_InitializeGraph (positions, num_atoms, pbc) result (graph)
     type(bg_graph_type) :: graph
     integer :: num_atoms
