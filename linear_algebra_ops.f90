@@ -95,5 +95,4 @@ function vector_sub(Y, Z) result(X)
 end function vector_sub
 
 
-
 end module linear_algebra_ops

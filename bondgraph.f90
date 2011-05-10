@@ -3,6 +3,7 @@
 module bond_graph_module
 
   use md_system_module, only : md_pbc_type
+  use md_math_module, only : md_minimumvector
 
   !! All bondlengths are given in angstroms
   real*8, parameter ::  bg_oh_bond_length = 1.1,               &
@@ -20,7 +21,8 @@ module bond_graph_module
   ! distance between atoms
   type bg_node_type
     integer :: bond_type
-    real*8 :: distance
+    real*8,dimension(3) :: bond
+    real*8 :: bondlength
   end type bg_node_type
 
   type bg_graph_type
@@ -55,21 +57,13 @@ contains
 
     ! this populates the upper triangle of the matrix with the distances between
     ! the element pairs
-    do i=0,graph%graph_size-1
+    do i=1,graph%graph_size-1
       do j=i+1,graph%graph_size
 
-        if (pbc%pbc_set) then
-          graph%graph(i,j)%distance =       &
-          md_minimum_distance (positions(3*i+1:3*i+3), &
-                               positions(3*j+1:3*j+3), &
-                               pbc)
-        else
-          graph%graph(i,j)%distance =       &
-          linalg_distance(  &
-                positions(3*i+1:3*i+3), &
-                positions(3*j+1:3*j+3))
-        end if
-
+          graph%graph(i,j)%bond =                   &
+          md_MinimumVector (positions(3*i-2:3*i),   &
+                            positions(3*j-2:3*j),   &
+                            pbc%system_size)
       end do
     end do
 
@@ -83,7 +77,7 @@ contains
   subroutine bg_ClearGraph (graph)
     type(bg_graph_type),intent(inout) :: graph
     type(bg_node_type) :: clear_node 
-    clear_node = bg_node_type(bg_unbound, 0.0d0)
+    clear_node = bg_node_type(bg_unbound, (/ 0.0, 0.0, 0.0 /), 0.0d0)
     graph%graph(:,:) = clear_node
   end subroutine bg_ClearGraph
 
